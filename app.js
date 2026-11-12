@@ -9,7 +9,8 @@ const TICK_MS = 200;          // how often the scheduler runs
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let ctx = null;
-let buffer = null;
+let buffer = null;        // magic.wav – the 3.2-second button
+let minuteBuffer = null;  // minute.mp3 – the one-minute button
 let loading = null;
 
 // iOS: let sound play even when the ring/silent switch is on silent.
@@ -19,17 +20,18 @@ function ensureAudio() {
   if (!ctx) ctx = new AudioCtx();
   if (ctx.state === 'suspended') ctx.resume();
   if (!loading) {
-    loading = fetch('magic.wav')
+    const load = url => fetch(url)
       .then(r => r.arrayBuffer())
-      .then(data => new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject)))
-      .then(b => { buffer = b; return b; });
+      .then(data => new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject)));
+    loading = Promise.all([load('magic.wav'), load('minute.mp3')])
+      .then(([a, b]) => { buffer = a; minuteBuffer = b; });
   }
   return loading;
 }
 
-function playAt(when) {
+function playAt(when, buf = buffer) {
   const src = ctx.createBufferSource();
-  src.buffer = buffer;
+  src.buffer = buf;
   src.connect(ctx.destination);
   src.start(when);
   return src;
@@ -145,7 +147,12 @@ const once = { running: false, endTime: 0, source: null, uiTimer: null };
 
 function onceUi() {
   if (!once.running) return;
-  const left = Math.max(0, once.endTime - ctx.currentTime);
+  const left = once.endTime - ctx.currentTime;
+  if (left <= 0) {
+    minuteTitle.textContent = 'הצליל מתנגן';
+    minuteSub.textContent = 'לחצו לעצירה';
+    return;
+  }
   const s = Math.ceil(left);
   minuteSub.textContent = `נותרו ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} · לחצו לביטול`;
 }
@@ -164,13 +171,15 @@ async function startOnce() {
   await ensureAudio();
   once.running = true;
   once.endTime = ctx.currentTime + ONCE_SECONDS;
-  const src = playAt(once.endTime);
+  const src = playAt(once.endTime, minuteBuffer);
   once.source = src;
   setTimeout(() => {
-    if (once.source !== src) return;
-    flash(minuteBtn);
-    resetOnce();
+    if (once.source === src) flash(minuteBtn);
   }, ONCE_SECONDS * 1000);
+  // The timer ends when the sound finishes playing (or is stopped).
+  src.onended = () => {
+    if (once.source === src) resetOnce();
+  };
   once.uiTimer = setInterval(onceUi, 200);
   minuteBtn.setAttribute('aria-pressed', 'true');
   minuteTitle.textContent = 'הטיימר פועל';
@@ -179,7 +188,9 @@ async function startOnce() {
 }
 
 function cancelOnce() {
-  if (once.source) { try { once.source.stop(); } catch (e) {} }
+  const src = once.source;
+  once.source = null;
+  if (src) { try { src.stop(); } catch (e) {} }
   resetOnce();
 }
 

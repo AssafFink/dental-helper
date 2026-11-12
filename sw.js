@@ -1,10 +1,11 @@
-const CACHE = 'dental-helper-v1';
+const CACHE = 'dental-helper-v2';
 const FILES = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './magic.wav',
+  './minute.mp3',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
