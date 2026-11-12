@@ -1,0 +1,93 @@
+:root {
+  --bg: #f0f9fb;
+  --text: #0f2a33;
+  --muted: #4b6670;
+  --repeat: #0e7490;
+  --repeat-on: #b91c1c;
+  --minute: #7c3aed;
+  --minute-on: #b45309;
+  --card: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1a20;
+    --text: #e6f4f7;
+    --muted: #9bb6bf;
+    --card: #12262e;
+  }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.app {
+  max-width: 480px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.top h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.card { flex: 1; display: flex; }
+
+.btn {
+  flex: 1;
+  min-height: 180px;
+  border: 0;
+  border-radius: 24px;
+  color: #fff;
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
+  transition: transform .08s ease, background-color .2s ease;
+}
+.btn:active { transform: scale(.97); }
+.btn:focus-visible { outline: 4px solid #facc15; outline-offset: 3px; }
+
+.btn-repeat { background: var(--repeat); }
+.btn-repeat[aria-pressed="true"] { background: var(--repeat-on); }
+.btn-minute { background: var(--minute); }
+.btn-minute[aria-pressed="true"] { background: var(--minute-on); }
+
+.btn-title { font-size: 1.6rem; font-weight: 700; line-height: 1.3; }
+.btn-sub { font-size: 1.15rem; opacity: .95; font-variant-numeric: tabular-nums; }
+
+.flash { animation: flash .35s ease; }
+@keyframes flash {
+  0% { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+
+.note {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}
